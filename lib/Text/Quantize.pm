@@ -142,17 +142,48 @@ __END__
 =head1 SYNOPSIS
 
     use Text::Quantize;
-
+    
     print quantize([26, 24, 51, 77, 21]);
-
+    
     __END__
-
+    
      value  ------------- Distribution ------------- count
          8 |                                         0
         16 |@@@@@@@@@@@@@@@@@@@@@@@@                 3
         32 |@@@@@@@@                                 1
         64 |@@@@@@@@                                 1
        128 |                                         0
+
+
+
+    use Text::Quantize ();
+
+    print Text::Quantize::quantize([map { chomp; $_ } <DATA>], {
+        left_label             => 'microseconds',
+        middle_label           => 'Calls per time bucket',
+        right_label            => 'syscalls',
+        distribution_width     => 80,
+        distribution_character => '=',
+    });
+    
+    __END__
+    
+     microseconds  ---------------------------- Calls per time bucket ----------------------------- syscalls
+              256 |                                                                                 0
+              512 |====                                                                             5
+             1024 |=====                                                                            7
+             2048 |==================                                                               23
+             4096 |============================                                                     36
+             8192 |=======                                                                          9
+            16384 |=                                                                                2
+            32768 |                                                                                 1
+           262144 |                                                                                 1
+           524288 |                                                                                 1
+          1048576 |                                                                                 1
+          2097152 |=======                                                                          9
+          4194304 |===                                                                              4
+          8388608 |                                                                                 1
+         16777216 |                                                                                 0
 
 =cut
 
