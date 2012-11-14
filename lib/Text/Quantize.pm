@@ -184,5 +184,11 @@ __END__
           8388608 |                                                                                 1
          16777216 |                                                                                 0
 
+=head1 SEE ALSO
+
+C<DTrace>
+
+L<dip>
+
 =cut
 
