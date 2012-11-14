@@ -3,6 +3,13 @@ package Text::Quantize;
 use strict;
 use warnings;
 use List::Util 'sum';
+use Sub::Exporter -setup => {
+    exports => ['quantize', 'bucketize'],
+    groups  => {
+        default => ['quantize'],
+    },
+};
+
 
 sub bucketize {
     my $elements = shift;

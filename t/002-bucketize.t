@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 use Test::More;
-use Text::Quantize;
+use Text::Quantize 'bucketize';
 
 my @data = (
     [26, 24, 51, 77, 21] => {
@@ -32,7 +32,7 @@ my @data = (
 
 plan tests => @data / 2;
 while (my ($input, $expected) = splice(@data, 0, 2)) {
-    my $buckets = Text::Quantize::bucketize($input, { add_endpoints => 0 });
+    my $buckets = bucketize($input, { add_endpoints => 0 });
     is_deeply($buckets, $expected);
 }
 

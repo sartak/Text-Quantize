@@ -4,7 +4,7 @@ use warnings;
 use Test::More;
 use Text::Quantize;
 
-my $output = Text::Quantize::quantize([26, 24, 51, 77, 21]);
+my $output = quantize([26, 24, 51, 77, 21]);
 is_deeply($output, <<'OUT');
  value  ------------- Distribution ------------- count
      8 |                                         0
