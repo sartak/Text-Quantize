@@ -33,6 +33,6 @@ my @data = (
 plan tests => @data / 2;
 while (my ($input, $expected) = splice(@data, 0, 2)) {
     my $buckets = bucketize($input, { add_endpoints => 0 });
-    is_deeply($buckets, $expected);
+    is_deeply($buckets, $expected, "bucketize(@$input)");
 }
 

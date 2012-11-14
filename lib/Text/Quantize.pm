@@ -26,9 +26,11 @@ sub bucketize {
             $bucket = 0;
         }
         elsif ($element < 0) {
+            # log(negative) is an error, so take the log of the absolute value then negate it
             $bucket = -1 * (2 ** int(log(-$element) / log(2)));
         }
         else {
+            # which power of 2 is this greater-than-or-equal to?
             $bucket = 2 ** int(log($element) / log(2));
         }
 
@@ -42,12 +44,31 @@ sub bucketize {
             $options->{minimum} = $min if !defined($options->{minimum});
             $options->{maximum} = $max if !defined($options->{maximum});
         }
-
-        # force the min and max to exist, but if that endpoint has a value don't blindly overwrite it
-        $buckets{ $options->{minimum} } ||= 0;
-        $buckets{ $options->{maximum} } ||= 0;
     }
 
+    # if add_endpoints, then use the expanded range that we calculated or the user specified
+    # otherwise, start at the first bucket with data and go until the last bucket with data
+    my ($start, $end) = $options->{add_endpoints}
+                      ? ($options->{minimum}, $options->{maximum})
+                      : (sort { $a <=> $b } keys %buckets)[0,-1];
+
+    # force every bucket in the range to exist
+    my $i = $start;
+    while ($i <= $end) {
+        $buckets{$i} ||= 0;
+        if ($i == 0) {
+            $i = 1;
+        }
+        elsif ($i == -1) {
+            $i = 0;
+        }
+        elsif ($i < 0) {
+            $i /= 2; # since we're negative, increasing means smaller numbers
+        }
+        else {
+            $i *= 2;
+        }
+    }
     return \%buckets;
 }
 
