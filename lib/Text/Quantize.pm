@@ -249,9 +249,11 @@ data set is complete.
 
 =head1 SEE ALSO
 
-C<DTrace>
+C<DTrace>, which is where I first saw this kind of C<quantize()>
+histogram.
 
-L<dip>
+L<dip>, which ported C<quantize()> to Perl first, and from which I
+took a few insights.
 
 =cut
 
