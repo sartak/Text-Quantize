@@ -3,25 +3,27 @@ package Text::Quantize;
 use strict;
 use warnings;
 
-sub _next_power_of_2 {
-    my $num = int(shift);
-    my $sign = 1;
+sub bucketize {
+    my $elements = shift;
 
-    if ($num == 0) {
-        return 0;
+    my %buckets;
+    for my $element (@$elements) {
+        my $bucket;
+
+        if ($element == 0) {
+            $bucket = 0;
+        }
+        elsif ($element < 0) {
+            $bucket = -1 * (2 ** int(log(-$element) / log(2)));
+        }
+        else {
+            $bucket = 2 ** int(log($element) / log(2));
+        }
+
+        $buckets{$bucket}++;
     }
 
-    if ($num < 0) {
-        $sign = -1;
-        $num *= -1;
-    }
-
-    my $pow = 1;
-    while ($num >= $pow) {
-        $pow *= 2;
-    }
-
-    return $sign * $pow;
+    return \%buckets;
 }
 
 1;
