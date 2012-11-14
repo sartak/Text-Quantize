@@ -25,6 +25,35 @@ is_deeply($output, <<'OUT');
   1024 |                                         0
 OUT
 
-done_testing;
+$output = quantize([26, 24, 51, 77, 21], { maximum => 2048 });
 
+is_deeply($output, <<'OUT');
+ value  ------------- Distribution ------------- count
+     8 |                                         0
+    16 |@@@@@@@@@@@@@@@@@@@@@@@@                 3
+    32 |@@@@@@@@                                 1
+    64 |@@@@@@@@                                 1
+   128 |                                         0
+   256 |                                         0
+   512 |                                         0
+  1024 |                                         0
+  2048 |                                         0
+OUT
+
+$output = quantize([26, 24, 51, 77, 21, 1051]);
+
+is_deeply($output, <<'OUT');
+ value  ------------- Distribution ------------- count
+     8 |                                         0
+    16 |@@@@@@@@@@@@@@@@@@@@                     3
+    32 |@@@@@@                                   1
+    64 |@@@@@@                                   1
+   128 |                                         0
+   256 |                                         0
+   512 |                                         0
+  1024 |@@@@@@                                   1
+  2048 |                                         0
+OUT
+
+done_testing;
 

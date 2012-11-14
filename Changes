@@ -1,5 +1,8 @@
 Changes for MooseX-Role-Parameterized
 
+0.05
+    Fill in missing buckets
+
 0.04 2012-11-14
     Better documentation
     Use Sub::Exporter to get quantize() automatically.
