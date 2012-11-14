@@ -6,6 +6,10 @@ use List::Util 'sum';
 
 sub bucketize {
     my $elements = shift;
+    my $options  = {
+        add_endpoints => 1,
+        %{ shift(@_) || {} },
+    };
 
     my %buckets;
     for my $element (@$elements) {
@@ -22,6 +26,19 @@ sub bucketize {
         }
 
         $buckets{$bucket}++;
+    }
+
+    # allow user to specify only one of the two endpoints if desired, and figure the other out
+    if ($options->{add_endpoints}) {
+        unless (defined($options->{minimum}) && defined($options->{maximum})) {
+            my ($min, $max) = _endpoints_for(\%buckets);
+            $options->{minimum} = $min if !defined($options->{minimum});
+            $options->{maximum} = $max if !defined($options->{maximum});
+        }
+
+        # force the min and max to exist, but if that endpoint has a value don't blindly overwrite it
+        $buckets{ $options->{minimum} } ||= 0;
+        $buckets{ $options->{maximum} } ||= 0;
     }
 
     return \%buckets;
@@ -64,24 +81,6 @@ sub _endpoints_for {
     return ($min_endpoint, $max_endpoint);
 }
 
-sub _massage_buckets {
-    my $buckets = shift;
-    my $options = shift;
-
-    # allow user to specify only one of the two endpoints if desired, and figure the other out
-    unless (defined($options->{minimum}) && defined($options->{maximum})) {
-        my ($min, $max) = _endpoints_for($buckets);
-        $options->{minimum} = $min if !defined($options->{minimum});
-        $options->{maximum} = $max if !defined($options->{maximum});
-    }
-
-    # force the min and max to exist, but if that endpoint has a value don't blindly overwrite it
-    $buckets->{ $options->{minimum} } ||= 0;
-    $buckets->{ $options->{maximum} } ||= 0;
-
-    return $buckets;
-}
-
 sub quantize {
     my $elements = shift;
     my %options  = (
@@ -93,7 +92,7 @@ sub quantize {
         %{ shift(@_) || {} },
     );
 
-    my $buckets = _massage_buckets(bucketize($elements, \%options));
+    my $buckets = bucketize($elements, \%options);
 
     my $distribution_width = $options{distribution_width};
     my $distribution_character = $options{distribution_character};

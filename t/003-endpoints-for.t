@@ -27,7 +27,7 @@ my @data = (
 plan tests => @data / 2;
 my $i = 0;
 while (my ($input, $expected) = splice(@data, 0, 2)) {
-    my $buckets = Text::Quantize::bucketize($input);
+    my $buckets = Text::Quantize::bucketize($input, { add_endpoints => 0 });
     my ($min, $max) = Text::Quantize::_endpoints_for($buckets);
 
     is_deeply([$min, $max], $expected, "_endpoints_for \@data line " . ($first_line + $i));
