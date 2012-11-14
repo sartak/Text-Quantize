@@ -184,6 +184,69 @@ __END__
           8388608 |                                                                                 1
          16777216 |                                                                                 0
 
+=head1 FUNCTIONS
+
+=head2 C<quantize([integers], {options})>
+
+C<quantize> takes an array reference of integers and an optional
+hash reference of options, and produces a textual histogram of the
+integers bucketed into powers-of-2 sets.
+
+Options include:
+
+=over 4
+
+=item C<left_label> (default: C<value>)
+
+Controls the text of the left-most label which represents the
+bucket's contents.
+
+=item C<middle_label> (default: C<Distribution>)
+
+Controls the text of the middle label which can be used to title
+the histogram.
+
+=item C<right_label> (default: C<count>)
+
+Controls the text of the right-most label which represents how many
+items are in that bucket.
+
+=item C<distribution_width> (default: C<40>)
+
+Controls how many characters wide the textual histogram is. This
+does not include the legends.
+
+=item C<distribution_character> (default: C<@>)
+
+Controls the character used to represent the data in the histogram.
+
+=item C<add_endpoints> (default: C<1>)
+
+Controls whether the top and bottom lines (which are going to have
+values of 0) are added. They're included by default because it hints
+that the data set is complete.
+
+=back
+
+=head2 C<bucketize([integers], {options})>
+
+C<bucketize> takes an array reference of integers and an optional
+hash reference of options, and produces a hash reference of those
+integers bucketed into powers-of-2 sets.
+
+Options include:
+
+=over 4
+
+=item add_endpoints (default: C<1>)
+
+Controls whether extra buckets, smaller than the minimum value and
+larger than the maximum value, (which are going to have values of
+0) are added. They're included by default because it hints that the
+data set is complete.
+
+=back
+
 =head1 SEE ALSO
 
 C<DTrace>
