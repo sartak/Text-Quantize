@@ -64,6 +64,24 @@ sub _endpoints_for {
     return ($min_endpoint, $max_endpoint);
 }
 
+sub _massage_buckets {
+    my $buckets = shift;
+    my $options = shift;
+
+    # allow user to specify only one of the two endpoints if desired, and figure the other out
+    unless (defined($options->{minimum}) && defined($options->{maximum})) {
+        my ($min, $max) = _endpoints_for($buckets);
+        $options->{minimum} = $min if !defined($options->{minimum});
+        $options->{maximum} = $max if !defined($options->{maximum});
+    }
+
+    # force the min and max to exist, but if that endpoint has a value don't blindly overwrite it
+    $buckets->{ $options->{minimum} } ||= 0;
+    $buckets->{ $options->{maximum} } ||= 0;
+
+    return $buckets;
+}
+
 sub quantize {
     my $elements = shift;
     my %options  = (
@@ -75,19 +93,10 @@ sub quantize {
         %{ shift(@_) || {} },
     );
 
-    my $buckets = bucketize($elements);
+    my $buckets = _massage_buckets(bucketize($elements, \%options));
 
-    # allow user to specify only one of the two endpoints if desired, and figure the other out
-    unless (defined($options{minimum}) && defined($options{maximum})) {
-        my ($min, $max) = _endpoints_for($buckets);
-        $options{minimum} = $min if !defined($options{minimum});
-        $options{maximum} = $max if !defined($options{maximum});
-    }
-
-
-    # force the min and max to exist, but if that endpoint has a value don't blindly overwrite it
-    $buckets->{ $options{minimum} } ||= 0;
-    $buckets->{ $options{maximum} } ||= 0;
+    my $distribution_width = $options{distribution_width};
+    my $distribution_character = $options{distribution_character};
 
     my $sum = sum values %$buckets;
 
@@ -98,7 +107,7 @@ sub quantize {
     }
     $left_width++;
 
-    my $middle_spacer = $options{distribution_width} - length($options{middle_label}) - 2;
+    my $middle_spacer = $distribution_width - length($options{middle_label}) - 2;
     my $middle_left = int($middle_spacer / 2);
     my $middle_right = $middle_spacer - $middle_left;
 
@@ -113,13 +122,13 @@ sub quantize {
     for my $bucket (sort { $a <=> $b } keys %$buckets) {
         my $count = $buckets->{$bucket};
         my $ratio = ($count / $sum);
-        my $width = $options{distribution_width} * $ratio;
+        my $width = $distribution_width * $ratio;
 
         push @output, sprintf '%*d |%-*s %d',
             $left_width,
             $bucket,
-            $options{distribution_width},
-            ('@' x $width),
+            $distribution_width,
+            ($distribution_character x $width),
             $count;
     }
 
