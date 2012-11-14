@@ -2,6 +2,7 @@ package Text::Quantize;
 # ABSTRACT: render a list of numbers as a textual chart
 use strict;
 use warnings;
+use List::Util 'sum';
 
 sub bucketize {
     my $elements = shift;
@@ -63,4 +64,86 @@ sub _endpoints_for {
     return ($min_endpoint, $max_endpoint);
 }
 
+sub quantize {
+    my $elements = shift;
+    my %options  = (
+        distribution_width     => 40,
+        distribution_character => '@',
+        left_label             => 'value',
+        middle_label           => 'Distribution',
+        right_label            => 'count',
+        %{ shift(@_) || {} },
+    );
+
+    my $buckets = bucketize($elements);
+
+    # allow user to specify only one of the two endpoints if desired, and figure the other out
+    unless (defined($options{minimum}) && defined($options{maximum})) {
+        my ($min, $max) = _endpoints_for($buckets);
+        $options{minimum} = $min if !defined($options{minimum});
+        $options{maximum} = $max if !defined($options{maximum});
+    }
+
+
+    # force the min and max to exist, but if that endpoint has a value don't blindly overwrite it
+    $buckets->{ $options{minimum} } ||= 0;
+    $buckets->{ $options{maximum} } ||= 0;
+
+    my $sum = sum values %$buckets;
+
+    my $left_width = length($options{left_label});
+    for my $bucket (keys %$buckets) {
+        $left_width = length($bucket)
+            if length($bucket) > $left_width;
+    }
+    $left_width++;
+
+    my $middle_spacer = $options{distribution_width} - length($options{middle_label}) - 2;
+    my $middle_left = int($middle_spacer / 2);
+    my $middle_right = $middle_spacer - $middle_left;
+
+    my @output = sprintf '%*s  %s %s %s %s',
+        $left_width,
+        $options{left_label},
+        ('-' x $middle_left),
+        $options{middle_label},
+        ('-' x $middle_right),
+        $options{right_label};
+
+    for my $bucket (sort { $a <=> $b } keys %$buckets) {
+        my $count = $buckets->{$bucket};
+        my $ratio = ($count / $sum);
+        my $width = $options{distribution_width} * $ratio;
+
+        push @output, sprintf '%*d |%-*s %d',
+            $left_width,
+            $bucket,
+            $options{distribution_width},
+            ('@' x $width),
+            $count;
+    }
+
+    return wantarray ? @output : (join "\n", @output)."\n";
+}
+
 1;
+
+__END__
+
+=head1 SYNOPSIS
+
+    use Text::Quantize;
+
+    print quantize([26, 24, 51, 77, 21]);
+
+    __END__
+
+     value  ------------- Distribution ------------- count
+         8 |                                         0
+        16 |@@@@@@@@@@@@@@@@@@@@@@@@                 3
+        32 |@@@@@@@@                                 1
+        64 |@@@@@@@@                                 1
+       128 |                                         0
+
+=cut
+
