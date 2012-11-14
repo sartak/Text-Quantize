@@ -10,7 +10,6 @@ use Sub::Exporter -setup => {
     },
 };
 
-
 sub bucketize {
     my $elements = shift;
     my $options  = {
@@ -72,13 +71,76 @@ sub bucketize {
     return \%buckets;
 }
 
+sub quantize {
+    my $elements = shift;
+    my %options  = (
+        distribution_width     => 40,
+        distribution_character => '@',
+        left_label             => 'value',
+        middle_label           => 'Distribution',
+        right_label            => 'count',
+        %{ shift(@_) || {} },
+    );
+
+    my $buckets = bucketize($elements, \%options);
+
+    # pull these out because we consult them a lot, and in loops
+    my $distribution_width     = $options{distribution_width};
+    my $distribution_character = $options{distribution_character};
+
+    # the divisor deciding how wide each bucket's bar will be
+    my $sum = sum values %$buckets;
+
+    # how wide must the first column (with the left_label and values) be?
+    my $left_width = length($options{left_label});
+    for my $bucket (keys %$buckets) {
+        $left_width = length($bucket)
+            if length($bucket) > $left_width;
+    }
+    # add that extra space before every row
+    $left_width++;
+
+    # how many - characters do we need?
+    my $middle_spacer = $distribution_width - length($options{middle_label}) - 2;
+
+    # these will be different when $middle_spacer is odd, but we
+    # always want them to sum to $middle_spacer.
+    my $middle_left = int($middle_spacer / 2);
+    my $middle_right = $middle_spacer - $middle_left;
+
+    my @output = sprintf '%*s  %s %s %s %s',
+        $left_width,
+        $options{left_label},
+        ('-' x $middle_left),
+        $options{middle_label},
+        ('-' x $middle_right),
+        $options{right_label};
+
+    for my $bucket (sort { $a <=> $b } keys %$buckets) {
+        my $count = $buckets->{$bucket};
+        my $ratio = ($count / $sum);
+        my $width = $distribution_width * $ratio;
+
+        push @output, sprintf '%*d |%-*s %d',
+            $left_width,
+            $bucket,
+            $distribution_width,
+            ($distribution_character x $width),
+            $count;
+    }
+
+    return wantarray ? @output : (join "\n", @output)."\n";
+}
+
+# given a set of buckets, find the power of two smaller than the
+# smallest element, and the power of two greater than or equal to the
+# largest element. used for add_endpoints
 sub _endpoints_for {
     my $buckets = shift;
     my ($min_endpoint, $max_endpoint);
 
     my @sorted_buckets = (sort { $a <=> $b } keys %$buckets);
-    my $min = $sorted_buckets[0];
-    my $max = $sorted_buckets[-1];
+    my ($min, $max) = @sorted_buckets[0, -1];
 
     if ($min == 0) {
         $min_endpoint = -1;
@@ -107,59 +169,6 @@ sub _endpoints_for {
     }
 
     return ($min_endpoint, $max_endpoint);
-}
-
-sub quantize {
-    my $elements = shift;
-    my %options  = (
-        distribution_width     => 40,
-        distribution_character => '@',
-        left_label             => 'value',
-        middle_label           => 'Distribution',
-        right_label            => 'count',
-        %{ shift(@_) || {} },
-    );
-
-    my $buckets = bucketize($elements, \%options);
-
-    my $distribution_width = $options{distribution_width};
-    my $distribution_character = $options{distribution_character};
-
-    my $sum = sum values %$buckets;
-
-    my $left_width = length($options{left_label});
-    for my $bucket (keys %$buckets) {
-        $left_width = length($bucket)
-            if length($bucket) > $left_width;
-    }
-    $left_width++;
-
-    my $middle_spacer = $distribution_width - length($options{middle_label}) - 2;
-    my $middle_left = int($middle_spacer / 2);
-    my $middle_right = $middle_spacer - $middle_left;
-
-    my @output = sprintf '%*s  %s %s %s %s',
-        $left_width,
-        $options{left_label},
-        ('-' x $middle_left),
-        $options{middle_label},
-        ('-' x $middle_right),
-        $options{right_label};
-
-    for my $bucket (sort { $a <=> $b } keys %$buckets) {
-        my $count = $buckets->{$bucket};
-        my $ratio = ($count / $sum);
-        my $width = $distribution_width * $ratio;
-
-        push @output, sprintf '%*d |%-*s %d',
-            $left_width,
-            $bucket,
-            $distribution_width,
-            ($distribution_character x $width),
-            $count;
-    }
-
-    return wantarray ? @output : (join "\n", @output)."\n";
 }
 
 1;
