@@ -153,7 +153,7 @@ __END__
         64 |@@@@@@@@                                 1
        128 |                                         0
 
-
+=head1 FUSSY SYNOPSIS
 
     use Text::Quantize ();
 
