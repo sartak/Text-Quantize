@@ -1,5 +1,8 @@
 Changes for Text-Quantized
 
+0.06
+    Better documentation, tests
+
 0.05 2012-11-14
     Fill in missing buckets
     Finish commenting out the code
